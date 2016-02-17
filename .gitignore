@@ -1,2 +1,5 @@
 #PyCharm workdir
 .idea
+
+#Scripts output directory content
+output/*
