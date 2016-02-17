@@ -3,10 +3,10 @@ __author__ = 'kelley'
 import json
 from general import convert_to_IHEC_format
 
-def bisulfite_wrapper(version):
+VERSION='1.6'
+
+def bisulfite_wrapper(assembly, taxon_id):
     url = 'https://www.encodeproject.org/search/?type=experiment&assay_term_name=whole-genome%20shotgun%20bisulfite%20sequencing'
-    assembly = 'hg19'
-    taxon_id = 9606
 
     # Used to set is_main
     track_hierarchy = {'methylation_profile': ['methylation state at CpG', 'methylation state at CHH']}
@@ -19,11 +19,11 @@ def bisulfite_wrapper(version):
 
         return json_object
 
-    with open('../output/bisulfite_v%s.json' % version, 'w+') as outfile:
-        json.dump(convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, dataset_additions_f), outfile, indent=4)
+    return convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, dataset_additions_f)
+
+
 
 if __name__ == "__main__":
-
-    ############################# Load bisulfite experiments #############################
-
-    bisulfite_wrapper('1.6')
+    data = bisulfite_wrapper(assembly='hg19', taxon_id=9606)
+    with open('../output/bisulfite_v%s.json' % VERSION, 'w+') as outfile:
+        json.dump(data, outfile, indent=4)

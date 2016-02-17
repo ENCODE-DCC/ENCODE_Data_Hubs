@@ -3,10 +3,10 @@ __author__ = 'kelley'
 import json
 from general import convert_to_IHEC_format
 
-def chip_seq_wrapper(target, version):
+VERSION='1.6'
+
+def chip_seq_wrapper(assembly, taxon_id, target):
     url = 'https://www.encodeproject.org/search/?type=experiment&assay_term_name=ChIP-seq&target.name=%s-human' % target
-    assembly = 'hg19'
-    taxon_id = 9606
 
     # Used to set is_main
     track_hierarchy = {'peak_calls': ['optimal idr thresholded peaks', 'conservative idr thresholded peaks',
@@ -20,16 +20,15 @@ def chip_seq_wrapper(target, version):
 
         return json_object
 
-    with open('../output/%s_v%s.json' % (target, version), 'w+') as outfile:
-        json.dump(convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, dataset_additions_f), outfile, indent=4)
+    return convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, dataset_additions_f)
+
+
+
+
 
 if __name__ == "__main__":
-
-    ############################# Load Chip-seq experiments #############################
-
-    chip_seq_wrapper('H3K27ac', '1.6')
-    chip_seq_wrapper('H3K27me3', '1.6')
-    chip_seq_wrapper('H3K36me3', '1.6')
-    chip_seq_wrapper('H3K4me1', '1.6')
-    chip_seq_wrapper('H3K4me3', '1.6')
-    chip_seq_wrapper('H3K9me3', '1.6')
+    targets = ['H3K27ac', 'H3K27me3', 'H3K36me3', 'H3K4me1', 'H3K4me3', 'H3K9me3']
+    for t in targets:
+        data = chip_seq_wrapper(assembly='hg19', taxon_id=9606, target=t)
+        with open('../output/%s_v%s.json' % (t, VERSION), 'w+') as outfile:
+            json.dump(data, outfile, indent=4)
