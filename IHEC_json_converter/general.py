@@ -6,6 +6,7 @@ import urlparse
 import requests
 import json
 import os
+from datetime import datetime
 
 '''
 This file contains methods that convert ENCODE data (from its webservice urls) into JSON that IHEC then loads.
@@ -193,7 +194,8 @@ def create_hub_description(assembly, taxon_id):
         'taxon_id': taxon_id,
         'assembly': assembly,
         'publishing_group': 'ENCODE',
-        'email': 'encode-help@lists.stanford.edu'
+        'email': 'encode-help@lists.stanford.edu',
+        'date': str(datetime.now().date())
     }
 
 
