@@ -27,7 +27,7 @@ def main(argv):
     #Whole-Genome Bisulfite Sequencing experiments
     print("Processing WGB-Seq...")
     try:
-        data = bisulfite.bisulfite_wrapper(assembly='hg19', taxon_id=9606)
+        data = bisulfite.bisulfite_wrapper(assembly=assembly, taxon_id=taxon_id)
         filename = 'WGB-Seq_%s_%s_%s.json' % (taxon_id, assembly, date_str)
         output_file(data, filename)
         print("Done.")
@@ -51,7 +51,7 @@ def main(argv):
     for t in targets:
         print("Processing ChIP-Seq %s..." % t)
         try:
-            data = chipseq.chip_seq_wrapper(assembly='hg19', taxon_id=9606, target=t)
+            data = chipseq.chip_seq_wrapper(assembly=assembly, taxon_id=taxon_id, target=t)
             filename = 'ChIP-Seq_%s_%s_%s_%s.json' % (taxon_id, assembly, t, date_str)
             output_file(data, filename)
             print("Done.")
