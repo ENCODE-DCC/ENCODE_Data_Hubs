@@ -13,3 +13,7 @@ These scripts fetch ENCODE metadata from the ENCODE portal, and output it in the
 cd IHEC_json_converter
 python ./fetch_all_exp_jsons.py --assembly=hg19 --taxon-id=9606
 ```
+
+### Credits
+
+Original development by ENCODE team, available here: https://github.com/kpaskov/PaskovEncodeScripts 
