@@ -1,5 +1,6 @@
-f__author__ = 'kelley'
+from __future__ import print_function
 
+f__author__ = 'kelley'
 
 import sys
 import urlparse
@@ -73,13 +74,17 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
     hub_description = create_hub_description(assembly, taxon_id)
 
     #Create all of the datasets (one for each experiment, sample_id pair)
-    print '%d experiments returned from this query.' % len(json_response)
+    print('%d experiments returned from this query.' % len(json_response))
 
     datasets = dict()
+    datasetIdx = 0
     for entry in json_response:
+        datasetIdx += 1
+        print('%03d / %03d: \'%s\' ' % (datasetIdx, len(json_response), entry['accession']), end='')
         datasets.update(create_datasets(entry, assay_specific_additions))
+        print()
 
-    print '%d IHEC datasets created.' % len(datasets)
+    print('%d IHEC datasets created.' % len(datasets))
 
     # Merge datasets. We can merge two datasets if either
     # 1. they have the same experiment_id and their sample_attributes are identical
@@ -96,7 +101,7 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
     datasets = dict()
     for experiment_id, these_datasets in experiment_id_to_datasets.iteritems():
         if is_match_sample_attributes([x['sample_attributes'] for x in these_datasets]):
-            print 'Match found: ' + experiment_id
+            print('Match found: ' + experiment_id)
 
             dataset = these_datasets[0]
             dataset['browser'] = merge_tracks(these_datasets)
@@ -121,7 +126,7 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
     datasets = dict(nogroup_datasets)
     for key, these_datasets in group_key_to_datasets.iteritems():
          if len(these_datasets) > 1:
-            print 'Collapsed: ', key, len(these_datasets)
+            print('Collapsed: ', key, len(these_datasets))
 
             dataset = these_datasets[0][1]
             dataset['browser'] = collapse_tracks([x[1] for x in these_datasets])
@@ -142,7 +147,7 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
         del dataset['accession']
         del dataset['sample_attributes']['replicate']
 
-    print '%d IHEC datasets created after merge.' % len(datasets)
+    print('%d IHEC datasets created after merge.' % len(datasets))
 
     return {
         'hub_description': hub_description,
@@ -200,7 +205,6 @@ def create_hub_description(assembly, taxon_id):
 
 
 def create_datasets(experiment, assay_specific_additions):
-    print experiment['accession']
     experiment = get_json_from_encode('https://www.encodeproject.org/experiments/%s/?format=json' % experiment['accession'])
 
     #Create sample_attributes
@@ -266,7 +270,7 @@ def set_main_track(tracks, track_hierarchy, exp_accession, track_type):
 
     #Set main track
     if main_track is None:
-        print 'Dataset %s has no %s tracks.' % (exp_accession, track_type)
+        print('Dataset %s has no %s tracks.' % (exp_accession, track_type))
     else:
         main_track['is_main'] = True
     return tracks
@@ -286,7 +290,7 @@ def create_track(file, protocol_document_href, replicate_num):
                         "subtype": file['output_type']
                     }
         else:
-            print 'Output type not found: ' + file['output_type']
+            print('Output type not found: ' + file['output_type'])
 
 
 def is_match_sample_attributes(sample_attributes):
@@ -311,7 +315,7 @@ def create_sample_attribute(replicate):
     elif biosample['biosample_term_id'].startswith('NTR'):
         sample_ontology_uri = ''
     else:
-        print 'Could not find url for sample ontology %s' % biosample['biosample_term_id']
+        print('Could not find url for sample ontology %s' % biosample['biosample_term_id'])
 
     sample_attribute = {
         'sample_id' : biosample['accession'],
@@ -357,7 +361,7 @@ def add_SA_cell_line(sample_attribute, biosample):
             if len(biosamples_associated_with_donor) > 0:
                 sample_attribute['lineage'] = biosamples_associated_with_donor[0]['biosample_term_name']
             else:
-                print 'No stem cell biosamples associated with donor %s' % donor_accession
+                print('No stem cell biosamples associated with donor %s' % donor_accession)
         else:
             sample_attribute['lineage'] = ''
 
@@ -391,7 +395,7 @@ def prep_query_url(url, assembly, taxon_id, limit='all'):
     queries['replicates.library.biosample.donor.organism.taxon_id'] = [str(taxon_id)]
     query = '&'.join(['&'.join([key + '=' + value for value in values]) for key, values in queries.iteritems()])
     new_url = urlparse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, query, parsed.fragment))
-    print new_url
+    print(new_url)
     return new_url
 
 
