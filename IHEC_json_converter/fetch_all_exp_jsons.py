@@ -28,7 +28,7 @@ def main(argv):
     print("Processing WGB-Seq...")
     try:
         data = bisulfite.bisulfite_wrapper(assembly=assembly, taxon_id=taxon_id)
-        filename = 'WGB-Seq_%s_%s_%s.json' % (taxon_id, assembly, date_str)
+        filename = 'ENCODE.%s.%s.WGB-Seq.%s.json' % (taxon_id, assembly, date_str)
         output_file(data, filename)
         print("Done.")
     except Exception as e:
@@ -39,11 +39,11 @@ def main(argv):
     print("Processing RNA-Seq...")
     try:
         data = rnaseq.rna_seq_wrapper(assembly=assembly, taxon_id=taxon_id)
-        filename = 'RNA-Seq_%s_%s_%s.json' % (taxon_id, assembly, date_str)
+        filename = 'ENCODE.%s.%s.RNA-Seq.%s.json' % (taxon_id, assembly, date_str)
         output_file(data, filename)
         print("Done.")
     except Exception as e:
-        print('An error occured while fetching RNA-Seq experiments: ' + e.message)
+        print('An error occured while fetching RNA-Seq experiments: ' + str(e.message))
     print
 
     #ChIP-Seq experiments
@@ -52,7 +52,7 @@ def main(argv):
         print("Processing ChIP-Seq %s..." % t)
         try:
             data = chipseq.chip_seq_wrapper(assembly=assembly, taxon_id=taxon_id, target=t)
-            filename = 'ChIP-Seq_%s_%s_%s_%s.json' % (taxon_id, assembly, t, date_str)
+            filename = 'ENCODE.%s.%s.ChIP-Seq_%s.%s.json' % (taxon_id, assembly, t, date_str)
             output_file(data, filename)
             print("Done.")
         except Exception as e:
