@@ -350,7 +350,7 @@ def add_SA_with_donor(sample_attribute, donor):
 def add_SA_cell_line(sample_attribute, biosample):
     if sample_attribute['biomaterial_type'] == 'Cell Line':
         sample_attribute['line'] = biosample['biosample_term_name']
-        sample_attribute['differenciate_stage'] = biosample['biosample_term_name']
+        sample_attribute['differentiation_stage'] = biosample['biosample_term_name']
         sample_attribute['sex'] = biosample['sex'].title()
 
         #Get lineage
@@ -373,7 +373,7 @@ def add_SA_primary_cell(sample_attribute, biosample):
 
 def add_SA_primary_tissue(sample_attribute, biosample):
     if sample_attribute['biomaterial_type'] == 'Primary Tissue':
-        sample_attribute['tissue_type'] = biosample['biosample_term_id']
+        sample_attribute['tissue_type'] = biosample['biosample_term_name']
 
 
 def create_experiment_attributes(experiment):
