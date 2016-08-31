@@ -5,8 +5,8 @@ These scripts fetch ENCODE metadata from the ENCODE portal, and output it in the
 
 #### Parameters
 
-* assembly: Assembly name (e.g. hg19, hg38, mm10)
-* taxon-id: Species taxonomy id (e.g. 9606 for human)
+* assembly: Assembly name (e.g. hg19, GRCh38, mm10)
+* taxon-id: Species taxonomy id (e.g. 9606 for human, 10090 for mouse)
 
 #### Example
 ```
