@@ -8,6 +8,10 @@ import requests
 import json
 import os
 from datetime import datetime
+from rnaseq import *
+from bisulfite import *
+from chipseq import *
+
 
 '''
 This file contains methods that convert ENCODE data (from its webservice urls) into JSON that IHEC then loads.
@@ -60,31 +64,31 @@ biomaterial_mapping = {
 # This code is used to generate IHEC json objects from any type of ENCODE assay. Anything assay-specific belongs
 # in other files.
 
-def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_specific_additions, limit='all'):
-    #Prepare the url - make sure it has the right parameters.
-    url = prep_query_url(url, assembly, taxon_id, limit=limit)
+def convert_to_IHEC_format(datasets, assembly, taxon_id):
+    # #Prepare the url - make sure it has the right parameters.
+    # url = prep_query_url(url, assembly, taxon_id, limit=limit)
 
-    #Get json response
-    json_response = get_json_from_encode(url)
+    # #Get json response
+    # json_response = get_json_from_encode(url)
 
-    if len(json_response) == 0:
-        raise Exception('This url returns no data.')
+    # if len(json_response) == 0:
+    #     raise Exception('This url returns no data.')
 
-    #Create hub description
-    hub_description = create_hub_description(assembly, taxon_id)
+    # #Create hub description
+    # hub_description = create_hub_description(assembly, taxon_id)
 
-    #Create all of the datasets (one for each experiment, sample_id pair)
-    print('%d experiments returned from this query.' % len(json_response))
+    # #Create all of the datasets (one for each experiment, sample_id pair)
+    # print('%d experiments returned from this query.' % len(json_response))
 
-    datasets = dict()
-    datasetIdx = 0
-    for entry in json_response:
-        datasetIdx += 1
-        print('%03d / %03d: \'%s\' ' % (datasetIdx, len(json_response), entry['accession']), end='')
-        datasets.update(create_datasets(entry, assay_specific_additions))
-        print()
+    # datasets = dict()
+    # datasetIdx = 0
+    # for entry in json_response:
+    #     datasetIdx += 1
+    #     print('%03d / %03d: \'%s\' ' % (datasetIdx, len(json_response), entry['accession']), end='')
+    #     datasets.update(create_datasets(entry, assay_specific_additions))
+    #     print()
 
-    print('%d IHEC datasets created.' % len(datasets))
+    # print('%d IHEC datasets created.' % len(datasets))
 
     # Merge datasets. We can merge two datasets if either
     # 1. they have the same experiment_id and their sample_attributes are identical
@@ -138,6 +142,7 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
     for accession, dataset in datasets.iteritems():
         for track_type in set(signal_mapping.values()):
             if track_type in dataset['browser']:
+                track_hierarchy = determine_track(dataset)
                 set_main_track(dataset['browser'][track_type], track_hierarchy[track_type], accession, track_type)
 
 
@@ -153,6 +158,32 @@ def convert_to_IHEC_format(url, assembly, taxon_id, track_hierarchy, assay_speci
         'hub_description': hub_description,
         'datasets': datasets
     }
+
+
+def determine_addition(experiment_obj):
+    assay_term_name = experiment_obj['assay_term_name']
+    if assay_term_name == 'ChIP-seq':
+        return chip_seq_addition
+    elif assay_term_name == 'RNA-seq':
+        return rna_seq_addition
+    elif assay_term_name == 'whole-genome shotgun bisulfite sequencing':
+        return bisulfite_addition
+
+
+def determine_track(dataset):
+    assay_term_name = dataset['experiment_attributes']['assay_type']
+    if assay_term_name == 'ChIP-seq':
+        return CHIPSEQ_TRACK_HIEARCHY
+    elif assay_term_name == 'RNA-seq':
+        return RNASEQ_TRACK_HIEARCHY
+    elif assay_term_name == 'whole-genome shotgun bisulfite sequencing':
+        return BISULFATE_TRACK_HIEARCHY
+
+def get_epirr_id(item):
+    for registry_id in item['dbxref']:
+            if 'IHEC' in registry_id:
+                return registry_id
+    return None
 
 
 def merge_tracks(datasets):
@@ -204,8 +235,7 @@ def create_hub_description(assembly, taxon_id):
     }
 
 
-def create_datasets(experiment, assay_specific_additions):
-    experiment = get_json_from_encode('https://www.encodeproject.org/experiments/%s/?format=json' % experiment['accession'])
+def create_datasets(experiment, registry_id, assay_specific_additions):
 
     #Create sample_attributes
     sample_attributes = [create_sample_attribute(replicate) for replicate in experiment['replicates']]
@@ -235,6 +265,7 @@ def create_datasets(experiment, assay_specific_additions):
                 all_tracks[track_type] = these_tracks
 
         json_object = {
+            'reference_registry_id': registry_id,
             'sample_attributes': sample_attribute,
             'experiment_attributes': experiment_attributes,
             'browser': all_tracks,
