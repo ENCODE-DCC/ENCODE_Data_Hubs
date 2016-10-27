@@ -3,7 +3,7 @@ from __future__ import print_function
 f__author__ = 'kelley'
 
 import sys
-import urlparse
+from urllib.parse import urlparse
 import requests
 import json
 import os
@@ -65,30 +65,10 @@ biomaterial_mapping = {
 # in other files.
 
 def convert_to_IHEC_format(datasets, assembly, taxon_id):
-    # #Prepare the url - make sure it has the right parameters.
-    # url = prep_query_url(url, assembly, taxon_id, limit=limit)
+ 
+    #Create hub description
+    hub_description = create_hub_description(assembly, taxon_id)
 
-    # #Get json response
-    # json_response = get_json_from_encode(url)
-
-    # if len(json_response) == 0:
-    #     raise Exception('This url returns no data.')
-
-    # #Create hub description
-    # hub_description = create_hub_description(assembly, taxon_id)
-
-    # #Create all of the datasets (one for each experiment, sample_id pair)
-    # print('%d experiments returned from this query.' % len(json_response))
-
-    # datasets = dict()
-    # datasetIdx = 0
-    # for entry in json_response:
-    #     datasetIdx += 1
-    #     print('%03d / %03d: \'%s\' ' % (datasetIdx, len(json_response), entry['accession']), end='')
-    #     datasets.update(create_datasets(entry, assay_specific_additions))
-    #     print()
-
-    # print('%d IHEC datasets created.' % len(datasets))
 
     # Merge datasets. We can merge two datasets if either
     # 1. they have the same experiment_id and their sample_attributes are identical
@@ -103,7 +83,7 @@ def convert_to_IHEC_format(datasets, assembly, taxon_id):
         experiment_id_to_datasets[experiment_id].append(dataset)
 
     datasets = dict()
-    for experiment_id, these_datasets in experiment_id_to_datasets.iteritems():
+    for experiment_id, these_datasets in experiment_id_to_datasets.items():
         if is_match_sample_attributes([x['sample_attributes'] for x in these_datasets]):
             print('Match found: ' + experiment_id)
 
@@ -118,7 +98,7 @@ def convert_to_IHEC_format(datasets, assembly, taxon_id):
     # Merge 2
     group_key_to_datasets = dict()
     nogroup_datasets = dict()
-    for accession, dataset in datasets.iteritems():
+    for accession, dataset in datasets.items():
         if dataset['award'] == 'ENCODE3':
             key = (dataset['experiment_attributes']['experiment_type'], dataset['sample_attributes']['sample_id'])
             if key not in group_key_to_datasets:
@@ -128,7 +108,7 @@ def convert_to_IHEC_format(datasets, assembly, taxon_id):
             nogroup_datasets[accession] = dataset
 
     datasets = dict(nogroup_datasets)
-    for key, these_datasets in group_key_to_datasets.iteritems():
+    for key, these_datasets in group_key_to_datasets.items():
          if len(these_datasets) > 1:
             print('Collapsed: ', key, len(these_datasets))
 
@@ -139,24 +119,32 @@ def convert_to_IHEC_format(datasets, assembly, taxon_id):
              datasets[these_datasets[0][0]] = these_datasets[0][1]
 
     #Set is_main on tracks
-    for accession, dataset in datasets.iteritems():
+    for accession, dataset in datasets.items():
         for track_type in set(signal_mapping.values()):
             if track_type in dataset['browser']:
                 track_hierarchy = determine_track(dataset)
-                set_main_track(dataset['browser'][track_type], track_hierarchy[track_type], accession, track_type)
+                if track_hierarchy:
+                    set_main_track(dataset['browser'][track_type], track_hierarchy[track_type], accession, track_type)
 
 
     # Remove extra entries:
-    for accession, dataset in datasets.iteritems():
+
+    samples = dict()
+
+    for accession, dataset in datasets.items():
         del dataset['award']
         del dataset['accession']
         del dataset['sample_attributes']['replicate']
+        dataset['sample_id'] = dataset['sample_attributes']['sample_id']
+        samples[dataset['sample_id']] = dataset['sample_attributes']
+        del dataset['sample_attributes']
 
     print('%d IHEC datasets created after merge.' % len(datasets))
 
     return {
         'hub_description': hub_description,
-        'datasets': datasets
+        'datasets': datasets,
+        'samples': samples
     }
 
 
@@ -180,7 +168,7 @@ def determine_track(dataset):
         return BISULFATE_TRACK_HIEARCHY
 
 def get_epirr_id(item):
-    for registry_id in item['dbxref']:
+    for registry_id in item['dbxrefs']:
             if 'IHEC' in registry_id:
                 return registry_id
     return None
@@ -190,7 +178,7 @@ def merge_tracks(datasets):
     # We want to merge these datasets together, so we need to merge tracks.
     new_tracks = {}
     for dataset in datasets:
-        for track_type, tracks in dataset['browser'].iteritems():
+        for track_type, tracks in dataset['browser'].items():
             if track_type not in new_tracks:
                 new_tracks[track_type] = []
 
@@ -200,14 +188,14 @@ def merge_tracks(datasets):
 
     #If a track has been assigned to multiple replicates, we might end up seeing it twice - check for that
     cleaned_tracks = dict()
-    for track_type, tracks in new_tracks.iteritems():
+    for track_type, tracks in new_tracks.items():
         url_to_track = dict()
         for track in tracks:
             if track['big_data_url'] not in url_to_track:
                 url_to_track[track['big_data_url']] = []
             url_to_track[track['big_data_url']].append(track)
 
-        for url, url_tracks in url_to_track.iteritems():
+        for url, url_tracks in url_to_track.items():
             if len(url_tracks) > 1:
                 track = url_tracks[0]
                 track['subtype'] = track['subtype'][0:track['subtype'].index('(rep')-1]
@@ -219,7 +207,7 @@ def collapse_tracks(datasets):
     # We want to collapse these datasets together, so we need to collapse tracks.
     new_tracks = {}
     for dataset in datasets:
-        for track_type, tracks in dataset['browser'].iteritems():
+        for track_type, tracks in dataset['browser'].items():
             if track_type not in new_tracks:
                 new_tracks[track_type] = []
             new_tracks[track_type].extend(tracks)
@@ -424,7 +412,7 @@ def prep_query_url(url, assembly, taxon_id, limit='all'):
     queries['format'] = ['json']
     queries['assembly'] = [assembly]
     queries['replicates.library.biosample.donor.organism.taxon_id'] = [str(taxon_id)]
-    query = '&'.join(['&'.join([key + '=' + value for value in values]) for key, values in queries.iteritems()])
+    query = '&'.join(['&'.join([key + '=' + value for value in values]) for key, values in queries.items()])
     new_url = urlparse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, query, parsed.fragment))
     print(new_url)
     return new_url

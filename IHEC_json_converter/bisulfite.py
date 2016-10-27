@@ -4,7 +4,7 @@ __author__ = 'kelley'
 VERSION='1.6'
 
 # Used to set is_main
-BISULFATE_TRACK_HIEARCHY = {'methylation_profile': ['methylation state at CpG', 'methylation state at CHH']}
+BISULFATE_TRACK_HIEARCHY = {'methylation_profile': ['methylation state at CpG', 'signal']}
 
 
 def bisulfate_addition(experiment, json_object):

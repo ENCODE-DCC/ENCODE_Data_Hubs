@@ -1,7 +1,6 @@
 __author__ = 'kelley'
 
 import json
-from general import convert_to_IHEC_format, set_main_track, signal_mapping
 
 VERSION='1.6'
 
@@ -27,11 +26,11 @@ def rna_seq_addition(experiment, json_object):
         size_range = experiment['replicates'][0]['library']['size_range']
 
     if size_range is None:
-        print 'Could not find size_range ' + experiment['accession']
+        print('Could not find size_range ' + experiment['accession'])
         json_object['experiment_attributes']['experiment_type'] = 'RNA-seq'
         json_object['experiment_attributes']['assay_type'] = 'RNA-seq'
     elif size_range not in size_range_to_experiment_type:
-        print 'Size range not found: ' + experiment['replicates'][0]['library']['size_range']
+        print('Size range not found: ' + experiment['replicates'][0]['library']['size_range'])
         json_object['experiment_attributes']['experiment_type'] = 'RNA-seq'
         json_object['experiment_attributes']['assay_type'] = 'RNA-seq'
     else:
