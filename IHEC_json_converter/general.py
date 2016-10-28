@@ -90,6 +90,7 @@ def convert_to_IHEC_format(datasets, assembly, taxon_id):
             dataset = these_datasets[0]
             dataset['browser'] = merge_tracks(these_datasets)
             dataset['sample_attributes']['sample_id'] = '-'.join(sorted([x['sample_attributes']['sample_id'] for x in these_datasets]))
+            dataset['analysis_attributes'] = create_analysis_attributes(dataset)
             datasets[experiment_id] = dataset
         else:
             for dataset in these_datasets:
@@ -229,7 +230,7 @@ def create_datasets(experiment, registry_id, assay_specific_additions):
     sample_attributes = [create_sample_attribute(replicate) for replicate in experiment['replicates']]
 
     #Create experiment_attributes
-    experiment_attributes = create_experiment_attributes(experiment)
+    experiment_attributes = create_experiment_attributes(experiment, registry_id)
 
     #Create tracks
     datasets = dict()
@@ -253,7 +254,6 @@ def create_datasets(experiment, registry_id, assay_specific_additions):
                 all_tracks[track_type] = these_tracks
 
         json_object = {
-            'reference_registry_id': registry_id,
             'sample_attributes': sample_attribute,
             'experiment_attributes': experiment_attributes,
             'browser': all_tracks,
@@ -395,12 +395,24 @@ def add_SA_primary_tissue(sample_attribute, biosample):
         sample_attribute['tissue_type'] = biosample['biosample_term_name']
 
 
-def create_experiment_attributes(experiment):
+def create_experiment_attributes(experiment, registry_id):
     return {
+        "reference_registry_id": registry_id,
         "assay_type": experiment['assay_term_name'],
         "experiment_ontology_uri": 'http://purl.obolibrary.org/obo/%s' % experiment['assay_term_id']
     }
 
+
+def create_analysis_attributes(experiment):
+    # No mapping exists between the expected attributes and portal data for now
+    analysis_attributes = {
+        "analysis_group": "",
+        "alignment_software": "",
+        "alignment_software_version": "",
+        "analysis_software": "...",
+        "analysis_software_version": ""
+    }
+    return analysis_attributes
 ############################# Get ENCODE data #############################
 # These functions get ENCODE data from the webservices.
 

@@ -2,6 +2,7 @@ import sys
 import getopt
 import json
 from datetime import datetime
+from reference_epigenome_experiments import collect_experiments
 
 def main(argv):
     opts, args = getopt.getopt(argv, "", ["assembly=", "taxon-id="])
@@ -21,7 +22,9 @@ def main(argv):
 
     date_str = datetime.now().date()
 
-
+    filename = 'ENCODE.{}.{}.{}.json'.format(taxon_id, assembly, date_str)
+    data = collect_experiments()
+    output_file(data, filename)
 
 
 
