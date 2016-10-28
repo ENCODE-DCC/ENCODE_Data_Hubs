@@ -23,7 +23,7 @@ def main(argv):
     date_str = datetime.now().date()
 
     filename = 'ENCODE.{}.{}.{}.json'.format(taxon_id, assembly, date_str)
-    data = collect_experiments()
+    data = collect_experiments(assembly, taxon_id)
     output_file(data, filename)
 
 

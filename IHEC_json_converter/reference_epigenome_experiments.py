@@ -21,7 +21,7 @@ def collect_experiments(assembly='hg19', taxon_id=9606):
         
         # Iterate over experiments in Reference Epigenomes
         for experiment_obj in reference_epigenome_object['related_datasets']:
-            if 'assembly' in experiment_obj and experiment_obj['assembly'] and experiment_obj['assembly'][0] == assembly:
+            if 'assembly' in experiment_obj and experiment_obj['assembly'] and assembly in experiment_obj['assembly']:
                 addition = determine_addition(experiment_obj)
                 if addition:
                     dataset.update(create_datasets(experiment_obj, reference_registry_id, addition))

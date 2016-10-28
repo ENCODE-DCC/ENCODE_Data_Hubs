@@ -11,7 +11,7 @@ These scripts fetch ENCODE metadata from the ENCODE portal, and output it in the
 #### Example
 ```
 cd IHEC_json_converter
-python ./fetch_all_exp_jsons.py --assembly=hg19 --taxon-id=9606
+python3 ./fetch_all_exp_jsons.py --assembly=hg19 --taxon-id=9606
 ```
 
 ### Credits
